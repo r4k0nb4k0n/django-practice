@@ -27,6 +27,40 @@ $ python3 manage.py runserver 0.0.0.0:8000
 ```
 $ python3 manage.py startapp polls
 ```
+* `polls/`라는 폴더가 생긴다.
+
+**4. Write your first view**
+```python3
+# polls/views.py
+
+from django.http import HttpResponse
+
+def index(request):
+    return HttpResponse("Hello, world. You're at the polls index.")
+```
+```python3
+# polls/urls.py
+
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path('', views.index, name='index'),
+]
+```
+
+```python3
+# mysite/urls.py
+
+from django.contrib import admin
+from django.urls import include, path
+
+urlpatterns = [
+    path('polls/', include('polls.urls')),
+    path('admin/', admin.site.urls),
+]
+```
 ## Part 2
 
 ## Part 3
