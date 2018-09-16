@@ -142,7 +142,7 @@ $ python3 manage.py migrate
 $ python# manage.py sqlmigrate polls 0001
 ```
 
-**4. Playting with the API**
+**4. Playing with the API**
 ```
 $ python3 manage.py shell
 ```
@@ -150,6 +150,24 @@ $ python3 manage.py shell
 * SQL을 몰라도 DB작업이 가능하다...?
 
 **5. Introducing the Django Admin**
+* model마다 관리자 interface를 만드는 게 지루하기 때문에, 장고는 이를 자동화했다.
+* Creating an admin user
+```
+$ python3 manage.py createsuperuser
+```
+* Start the development server
+```
+$ python3 manage.py runserver 0:8000
+```
+* Make the poll app modifiable in the admin
+```python3
+# polls/admin.py
+from django.contrib import admin
+
+from .models import Question
+
+admin.site.register(Question)
+```
 
 ## Part 3
 
