@@ -13,7 +13,7 @@ $ django-admin startproject django_practice
   * `django_practice/settings.py`는 장고 프로젝트의 설정 파일이다.
   * `django_practice/urls.py`로 장고 프로젝트에서 URL를 설정할 수 있다.
   * `django_practice/wsgi.py`
-
+  
 **2. The development server**
 ```
 $ python3 manage.py runserver 0:8000
@@ -62,6 +62,31 @@ urlpatterns = [
 ]
 ```
 ## Part 2
+**1. Database setup**
+* 기본적으로 SQLite를 사용한다.
+* 다른 것을 사용하고 싶다면 적합한 데이터베이스 모듈을 설치하고, 데이터베이스 연결 설정에 맞추기 위해 `DATABASES 'default'` 안의 다음 키들을 바꾼다.
+    - `ENGINE`
+        + `django.db.backends.sqlite3`
+        + `django.db.backends.postgresql`
+        + `django.db.backends.mysql`
+        + `django.db.backends.oracle`
+    - `NAME`
+        + 데이터베이스의 완전한 절대 경로
+        + `os.path.join(BASE_DIR, 'db.sqlite3')`
+* SQLite 대신 다른 데이터베이스를 사용한다면, `USER`, `PASSWORD`, `HOST`가 추가되어야 한다.
+* `django-practice/`에서 `TIME_ZONE`을 `Asia/Seoul`로 값을 변경했다.
+* 다음 명령을 통해 `INSTALLED_APPS`가 필요한 데이터베이스 테이블들을 생성한다.
+```
+$ python3 manage.py migrate
+```
+
+**2. Creating models**
+
+**3. Activating models**
+
+**4. Playting with the API**
+
+**5. Introducing the Django Admin**
 
 ## Part 3
 
