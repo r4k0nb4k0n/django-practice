@@ -107,6 +107,8 @@ class Choice(models.Model):
 * 각 model은 class 변수들을 가지는데, 이는 model의 database field를 나타낸다.
 * 각 `Choice`는 하나의 `Question`에 연결된다. 이는 `ForeignKey`로 다대일 관계를 나타낸다.
 * 다대일, 다대다, 일대일 관계
+* 자세히 하려면 DB 공부를 해야겠다.
+
 **3. Activating models**
 
 **4. Playting with the API**
