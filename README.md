@@ -140,8 +140,6 @@ $ python3 manage.py migrate
 * 이를 SQL문으로 볼 수도 있다.
 ```
 $ python# manage.py sqlmigrate polls 0001
-
-
 ```
 
 **4. Playting with the API**
