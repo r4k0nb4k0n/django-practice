@@ -81,7 +81,32 @@ $ python3 manage.py migrate
 ```
 
 **2. Creating models**
+* A model contains the essential fields and behaviors of the stored data.
+* 만들 것들
+    - `Question`
+        + A question(질문).
+        + A publication date(게시 날짜).
+    - `Choice`
+        + The text of the choice(선택지).
+        + A vote tally(표수).
+* 위를 다음과 같이 Python class로 나타낼 수 있다.
+```python3
+# polls/models.py
+from django.db import models
 
+class Question(models.Model):
+    question_text = models.CharField(max_length=200)
+    pub_date = models.DateTimeField('date published')
+
+class Choice(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    choice_text = models.CharField(max_length=200)
+    votes = models.IntegerField(default=0)
+```
+* 각 model은 `django.db.models.Model`의 sub-class인 class로 표현할 수 있다.
+* 각 model은 class 변수들을 가지는데, 이는 model의 database field를 나타낸다.
+* 각 `Choice`는 하나의 `Question`에 연결된다. 이는 `ForeignKey`로 다대일 관계를 나타낸다.
+* 다대일, 다대다, 일대일 관계
 **3. Activating models**
 
 **4. Playting with the API**
