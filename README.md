@@ -143,6 +143,11 @@ $ python# manage.py sqlmigrate polls 0001
 ```
 
 **4. Playting with the API**
+```
+$ python3 manage.py shell
+```
+* Add `__str__()` method.
+* SQL을 몰라도 DB작업이 가능하다...?
 
 **5. Introducing the Django Admin**
 
