@@ -110,6 +110,39 @@ class Choice(models.Model):
 * 자세히 하려면 DB 공부를 해야겠다.
 
 **3. Activating models**
+* **2. Creating models**를 통해 알 수 있는 Django가 할 수 있는 것
+    - 특정 앱을 위한 DB 스키마(`CREATE TABLE`) 생성/
+    - DB 내 특정 테이블을 접근할 수 있는 Python DB 접근 API 생성.
+* 먼저 프로젝트에게 `polls`를 추가했다고 알려주어야 한다.
+
+```python3
+# django-practice/settings.py
+
+# ...
+INSTALLED_APPS = [
+    'polls.apps.Polls.Config',
+    '...',
+]
+# ...
+```
+
+* 이후 `polls`의 마이그레이션 작업을 한다.
+```
+$ python3 manage.py makemigrations polls
+Migration for 'polls':
+  polls/migrations/0001_initial.py:
+    - Create model Choice
+    - Create model Question
+    - Add field question to choice
+$ python3 manage.py migrate
+```
+
+* 이를 SQL문으로 볼 수도 있다.
+```
+$ python# manage.py sqlmigrate polls 0001
+
+
+```
 
 **4. Playting with the API**
 
