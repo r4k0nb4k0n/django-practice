@@ -170,6 +170,24 @@ admin.site.register(Question)
 ```
 
 ## Part 3
+**1. Overview**
+* view는 특정 기능을 하고 특정 템플릿을 가진, 장고 어플리케이션에서 웹 페이지의 한 종류이다. 
+    - A blog application
+        + Blog homepage : displays the latest few entries.
+        + Entry 'detail' page : permalink page for a single entry.
+        + Year-based archive page : displays all months with entries in the given year.
+        + Month-based archive page : displays all days with entries in the given month.
+        + Day-based archive page : displays all entries in the given day.
+        + Comment action : handles posting comments to a given entry.
+    - 작업 중인 poll application
+        + Question 'index' page : displays the latest few questions.
+        + Question 'detail' page : displays a question text, with no results but with a form to vote.
+        + Question 'results' page : displays results for a particular question.
+        + Vote action : handles voting for a particular choice in a particular question.
+* 장고에서는, view에 의해 웹 페이지와 내용이 전달된다.
+* view는 간단한 Python function으로 표현된다. class 기반 view일 경우 method이다.
+* 장고는 요청된 URL을 분석하여 view를 선택한다.
+* 'URLconf'는 URL pattern과 view를 매핑한다.
 
 ## Part 4
 
