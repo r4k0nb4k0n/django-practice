@@ -528,3 +528,91 @@ def vote(request, question_id):
 **2. Basic testing strategies**
 * TDD, Test-Driven Development
 * 코딩 전에 테스트를 작성한다.
+
+**3. Writing our first test**
+* 버그 파악하기.
+* `Question.was_published_recently()`
+    - 1일 전 것은 `True`
+    - 30일 후 것도 `True` -> 버그.
+* `shell`로 버그 파악하기.
+```
+$ python3 manage.py shell
+```
+* Create a test to expose the bug
+* 관행적으로 app의 `tests.py` 파일이다.
+```python
+# polls/tests.py
+import datetime
+
+from django.test import TestCase
+from django.utils import timezone
+
+from .models import Question
+
+
+class QuestionModelTests(TestCase):
+
+    def test_was_published_recently_with_future_question(self):
+        """
+        was_published_recently() returns False for questions whose pub_date
+        is in the future.
+        """
+        time = timezone.now() + datetime.timedelta(days=30)
+        future_question = Question(pub_date=time)
+        self.assertIs(future_question.was_published_recently(), False)
+```
+* Running tests
+```
+$ python3 manage.py test polls
+Creating test database for alias 'default'...
+System check identified no issues (0 silenced).
+F
+======================================================================
+FAIL: test_was_published_recently_with_future_question (polls.tests.QuestionModelTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/path/to/mysite/polls/tests.py", line 16, in test_was_published_recently_with_future_question
+    self.assertIs(future_question.was_published_recently(), False)
+AssertionError: True is not False
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (failures=1)
+Destroying test database for alias 'default'...
+```
+* 다음과 같은 일이 일어났다.
+    - `manage.py test polls`는 `polls` 앱에서 테스트들을 찾아본다.
+    - `django.test.TestCase` 클래스의 서브클래스를 찾아낸다.
+    - 테스트 목적으로 특별한 데이터베이스를 생성한다.
+    - `test`로 시작하는 이름의 테스트 메소드를 찾는다.
+    - `test_was_published_recently_with_future_question`에서, `pub_date`가 현재보다 30일 후인 미래인 Question 인스턴스를 생성한다.
+    - 그리고 `assertIs()` 메소드를 사용하여, `False`를 예상했지만 `was_published_recently()`가 `True`를 리턴했다는 것을 발견했다.
+* 테스트가 실패했다는 것을 알게 된다.
+* Fixing the bug
+```python
+def was_published_recently(self):
+    now = timezone.now()
+    return now - datetime.timedelta(days=1) <= self.pub_date <= now
+```
+* More comprehensive tests
+```python
+# polls/tests.py
+def test_was_published_recently_with_old_question(self):
+    """
+    was_published_recently() returns False for questions whose pub_date
+    is older than 1 day.
+    """
+    time = timezone.now() - datetime.timedelta(days=1, seconds=1)
+    old_question = Question(pub_date=time)
+    self.assertIs(old_question.was_published_recently(), False)
+
+def test_was_published_recently_with_recent_question(self):
+    """
+    was_published_recently() returns True for questions whose pub_date
+    is within the last day.
+    """
+    time = timezone.now() - datetime.timedelta(hours=23, minutes=59, seconds=59)
+    recent_question = Question(pub_date=time)
+    self.assertIs(recent_question.was_published_recently(), True)
+```
