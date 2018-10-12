@@ -521,3 +521,6 @@ def vote(request, question_id):
 
 
 ## Part 5
+**1. Introducing automated testing**
+* Automated tests? Without having to perform time consming manual testing.
+* 시간 절약, 문제 방지, 디자인 준수, 팀워크 향상
