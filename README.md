@@ -372,6 +372,87 @@ urlpatterns = [
 ```html
 <li><a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a></li>
 ```
-## Part 4
 
+## Part 4
+**1. Write a simple form**
+* poll detail template(`polls/detail.html`) 개선
+```html
+<h1>{{ question.question_text }}</h1>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<form action="{% url 'polls:vote' question.id %}" method="post">
+{% csrf_token %}
+{% for choice in question.choice_set.all %}
+    <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">
+    <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br>
+{% endfor %}
+<input type="submit" value="Vote">
+</form>
+```
+* 개선사항
+    - question의 각 choice 마다 radio button을 출력한다. 각 radio button의 name은 `choice`다. 이는 form을 전송할 때 `choice=#`(#은 선택한 choice의 ID)라는 POST data를 같이 보내기 위해서이다. 이는 HTML forms의 기본 개념이다.
+    - form의 action을 `{% url 'polls:vote' question.id %}`로, `method="post"`로 설정했다. `method="get"`과는 달리 `"post"`는 서버 측 데이터를 사용 및 변조하기 때문이다. 이는 웹 개발 관례이다.
+    - `forloop.counter`는 `for` 태그가 몇 번 반복했는지 가리킨다.
+    - 데이터를 수정하는 영향을 끼치는 POST form을 만들기 때문에, CSRF(Cross Site Request Forgery)를 걱정해야 한다. Django에는 이를 사용하기 쉽게 만들었다. 결국, 내부 URL들을 대상으로 하는 모든 POST form들은 반드시 {% csrf_token %} 템플릿 태그를 사용해야 한다.
+* 전송된 데이터를 다루는 view를 만들자.
+```python
+# polls/urls.py
+path('<int:question_id>/vote/', views.vote, name='vote')
+```
+* 이전에 `vote()` 함수를 더미로만 구현했었다. 이번에 실제로 구현해보자. 다음 코드를 추가한다.
+```python
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
+
+from .models import Choice, Question
+# ...
+def vote(request, question_id):
+    question = get_object_or_404(Question, pk=question_id)
+    try:
+        selected_choice = question.choice_set.get(pk=request.POST['choice'])
+    except (KeyError, Choice.DoesNotExist):
+        # Redisplay the question voting form.
+        return render(request, 'polls/detail.html', {
+            'question': question,
+            'error_message': "You didn't select a choice.",
+        })
+    else:
+        selected_choice.votes += 1
+        selected_choice.save()
+        # Always return an HttpResponseRedirect after successfully dealing
+        # with POST data. This prevents data from being posted twice if a
+        # user hits the Back button.
+        return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
+```
+* 여기엔 아직 설명하지 못한 부분들이 있다.
+    - `request.POST`는 키 이름으로 전송한 데이터를 접근할 수 있도록 해주는 연상배열 같은 객체다. 여기서는, `request.POST['choice']`는 선택한 choice의 ID를 문자열로 돌려준다. `request.POST`의 값들은 항상 문자열이다. 물론 `request.GET`을 통해 GET 데이터도 접근이 가능하지만, 오직 POST call을 통해 데이터가 변경된다는 것을 확실하게 해주기 위해 `request.POST`만 사용한다.
+    - `request.POST['choice']`는 `choice`가 POST 데이터에 없다면 `KeyError`을 일으킬 것이다. 위 코드는 `KeyError`를 확인하고 `choice`가 주어지지 않았다면 에러 메시지와 함꼐 question form을 다시 보여준다. 
+    - choice 횟수를 증가한 후, 코드는 일반적인 `HttpResponse` 보단 `HttpResponseRedirect`를 리턴한다. `HttpResponseRedirect`는 유저가 redirect 될 URL을 인자로 받는다. 
+    - 위 코드에서 주석을 달았듯이, POST data를 성공적으로 다룬 이후에는 `HttpResponseRedirect`를 항상 리턴해야 하낟. 이는 웹 개발 관례이다.
+    - 여기서는 `HttpResponseRedirect`의 생성자에서 `reverse()` 함수를 사용하고 있다. 이 함수는 view 함수에서 URL를 직접 하드코딩하는 것을 방지한다.
+* 누군가 question에서 투표를 한 후에, `vote()` view는 그 질문의 결과 페이지에 리다이렉트해준다. 이를 view로 작성한다.
+```python
+# polls/views.py
+from django.shortcuts import get_object_or_404, render
+
+
+def results(request, question_id):
+    question = get_object_or_404(Question, pk=question_id)
+    return render(request, 'polls/results.html', {'question': question})
+```
+* `polls/results.html` 템플릿도 작성한다.
+```html
+<h1>{{ question.question_text }}</h1>
+
+<ul>
+{% for choice in question.choice_set.all %}
+    <li>{{ choice.choice_text }} -- {{ choice.votes }} vote{{ choice.votes|pluralize }}</li>
+{% endfor %}
+</ul>
+
+<a href="{% url 'polls:detail' question.id %}">Vote again?</a>
+```
+* `vote()` view에 작은 문제가 있다. 데이터베이스에서 `selected_choice` 객체를 얻어오고, `votes`의 새로운 값을 계산한 다음, 다시 데이터베이스에 저장한다. 만약 두 명의 유저가 동시에 투표를 한다면, 원래 42표에서 44표가 될 것이 43표로 저장될 수도 있다. 이는 race condition이라고 부른다. 이는 [Avoiding race conditions using F()](https://docs.djangoproject.com/en/2.1/ref/models/expressions/#avoiding-race-conditions-using-f)를 참조하면 도움이 된다.
 ## Part 5
