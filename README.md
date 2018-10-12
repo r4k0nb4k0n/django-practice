@@ -170,6 +170,7 @@ admin.site.register(Question)
 ```
 
 ## Part 3
+
 **1. Overview**
 * view는 특정 기능을 하고 특정 템플릿을 가진, 장고 어플리케이션에서 웹 페이지의 한 종류이다. 
     - A blog application
@@ -189,6 +190,43 @@ admin.site.register(Question)
 * 장고는 요청된 URL을 분석하여 view를 선택한다.
 * 'URLconf'는 URL pattern과 view를 매핑한다.
 
+
+**2. Writing more views**
+* 해당 view들은 인자를 가진다.
+```python
+# polls/views.py
+def detail(request, question_id):
+    return HttpResponse("You're looking at question %s." % question_id)
+    
+def results(request, question_id):
+    response = "You're looking at the results of question %s."
+    return HttpResponse(response % question_id)
+
+def vote(requeset, question_id):
+    return HttpResponse("You're voting on question %s." % question_id)
+```
+* 해당 view들을 다음 `path()` 호출을 추가하여 `polls.urls`에 엮는다.
+```python
+# polls/urls.py
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    # ex: /polls/
+    path('', views.index, name='index'),
+    # ex: /polls/5/
+    path('<int:question_id>/', views.detail, name='detail'),
+    # ex: /polls/5/results/
+    path(''<int:question_id>/results/', views.results, name='results'),
+    # ex: /polls/5/vote/
+    path('<int:question_id>/vote/', views.vote, name='vote'),
+]
+```
+* `/polls/34/` 는 다음과 같은 호출을 만든다.
+```
+detail(request=<HttpRequest object>, question_id=34)
+```
 ## Part 4
 
 ## Part 5
