@@ -292,6 +292,33 @@ def index(request):
     context = {'latest_question_list': latest_question_list}
     return render(request, 'polls/index.html', context)
 ```
+**4. Raising a 404 error**
+* 요청한 ID의 Question이 없다면 `Http404` 예외를 발생한다.
+```python
+# polls/views.py
+rom django.http import Http404
+from django.shortcuts import render
+
+from .models import Question
+# ...
+def detail(request, question_id):
+    try:
+        question = Question.objects.get(pk=question_id)
+    except Question.DoesNotExist:
+        raise Http404("Question does not exist")
+    return render(request, 'polls/detail.html', {'question': question})
+```
+* A shortcut: `get_object_or_404()`
+```python
+# polls/views.py
+from django.shortcuts import get_object_or_404, render
+
+from .models import Question
+# ...
+def detail(request, question_id):
+    question = get_object_or_404(Question, pk=question_id)
+    return render(request, 'polls/detail.html', {'question': question})
+```
 ## Part 4
 
 ## Part 5
