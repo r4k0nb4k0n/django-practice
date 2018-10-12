@@ -455,4 +455,69 @@ def results(request, question_id):
 <a href="{% url 'polls:detail' question.id %}">Vote again?</a>
 ```
 * `vote()` view에 작은 문제가 있다. 데이터베이스에서 `selected_choice` 객체를 얻어오고, `votes`의 새로운 값을 계산한 다음, 다시 데이터베이스에 저장한다. 만약 두 명의 유저가 동시에 투표를 한다면, 원래 42표에서 44표가 될 것이 43표로 저장될 수도 있다. 이는 race condition이라고 부른다. 이는 [Avoiding race conditions using F()](https://docs.djangoproject.com/en/2.1/ref/models/expressions/#avoiding-race-conditions-using-f)를 참조하면 도움이 된다.
+
+**2. Use generic views: Less code is better**
+* 지금 코드는 매우 간단하지만 양이 좀 많다. 
+* Django는 "generic views" 라는 지름길을 제공한다.
+* 다음과 같은 단계를 거쳐 generic views system을 사용한다.
+    1. Convert the URLconf.
+    2. Delete some of the old, unneeded views.
+    3. Introduce new views based on Django's generic views.
+* 먼저 generic views system 사용 안했어?
+    - 계산기 쓰기 전에 가감승제는 알아야지.
+* Amend URLconf
+```python
+# polls/urls.py
+from django.urls import path
+
+from . import views
+
+app_name = 'polls'
+urlpatterns = [
+    path('', views.IndexView.as_view(), name='index'),
+    path('<int:pk>/', views.DetailView.as_view(), name='detail'),
+    path('<int:pk>/results/', views.ResultsView.as_view(), name='results'),
+    path('<int:question_id>/vote/', views.vote, name='vote'),
+]
+```
+* Amend views
+```python
+# polls/views.py
+from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
+from django.views import generic
+
+from .models import Choice, Question
+
+
+class IndexView(generic.ListView):
+    template_name = 'polls/index.html'
+    context_object_name = 'latest_question_list'
+
+    def get_queryset(self):
+        """Return the last five published questions."""
+        return Question.objects.order_by('-pub_date')[:5]
+
+
+class DetailView(generic.DetailView):
+    model = Question
+    template_name = 'polls/detail.html'
+
+
+class ResultsView(generic.DetailView):
+    model = Question
+    template_name = 'polls/results.html'
+
+
+def vote(request, question_id):
+    ... # same as above, no changes needed.
+```
+* 두 개의 generic view를 사용한다.
+    - `ListView` : 객체들의 목록 표시
+    - `DetailView` : 특정 타입의 객체의 상세 내용 페이지를 표시
+* `model` 속성을 지정해줘야 한다.
+* `DetailView`는 URL에서 잡히는 주요 키값을 `pk`라고 한다. 그래서 generic view에서는 `question_id`를 `pk`로 바꿨다.
+
+
 ## Part 5
