@@ -227,6 +227,71 @@ urlpatterns = [
 ```
 detail(request=<HttpRequest object>, question_id=34)
 ```
+
+
+**3. Write views that actually do something**
+* view가 하는 일 2가지.
+    - 요청한 페이지와 관련된 내용이 담긴 `HttpResponse` 객체 리턴.
+    - `Http404` 같은 예외 발생
+* DB에서 레코드를 읽어오던, 템플릿을 이용하여 페이지를 출력하던, PDF, XML, ZIP 등 Python 라이브러리를 이용하여 무엇을 만들어서 돌려주던 상관없다.
+* Django의 데이터베이스 API를 사용한다.
+```python
+# polls/views.py
+from django.http import HttpResponse
+
+from .models import Question
+
+
+def index(request):
+    latest_question_list = Question.objects.order_by('-pub_date')[:5]
+    output = ', '.join([q.question_text for q in latest_question_list])
+    return HttpResponse(output)
+    
+# Leave the rest of the views (deatil, results, vote) unchanged.
+```
+* 템플릿을 이용하여 페이지의 모습을 바꾸자.
+    - `polls/templates/polls/index.html`로 디렉토리 및 파일을 생성한다.
+    - Template namespacing??
+```html
+{% if latest_question_list %}
+    <ul>
+    {% for question in latest_question_list %}
+        <li><a href="/polls/{{ question.id }}/">{{ question.question_text }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No polls are available.</p>
+{% endif %}
+```
+```python
+# polls/views.py
+from django.http import HttpResponse
+from django.template import loader
+
+from .models import Question
+
+
+def index(request):
+    latest_question_list = Question.objects.order_by('-pub_date')[:5]
+    template = loader.get_template('polls/index.html')
+    context = {
+        'latest_question_list': latest_question_list,
+    }
+    return HttpResponse(template.render(context, request))
+```
+* A shortcut: `render()`
+```python
+# polls/views.py
+from django.shortcuts import render
+
+from .models import Question
+
+
+def index(request):
+    latest_question_list = Question.objects.order_by('-pub_date')[:5]
+    context = {'latest_question_list': latest_question_list}
+    return render(request, 'polls/index.html', context)
+```
 ## Part 4
 
 ## Part 5
