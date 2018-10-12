@@ -330,6 +330,21 @@ def detail(request, question_id):
 {% endfor %}
 </ul>
 ```
+
+**6. Removing hardcoded URLs in templates**
+* Before
+```html
+<li><a href="/polls/{{ question.id }}/">{{ question.question_text }}</a></li>
+```
+* After
+```html
+<li><a href="{% url 'detail' question.id %}">{{ question.question_text }}</a></li>
+```
+* `polls.url` 모듈에 명시된 URL 정의를 찾는다.
+```python
+# the 'name' value as called by the {% url %} template tag
+path('<int:question_id>/', views.detail, name='detail')
+```
 ## Part 4
 
 ## Part 5
