@@ -345,6 +345,33 @@ def detail(request, question_id):
 # the 'name' value as called by the {% url %} template tag
 path('<int:question_id>/', views.detail, name='detail')
 ```
+
+**7. Namespacing URL names**
+* 해당 tutorial 프로젝트는 `polls`라는 앱 하나만 있다. 실제 프로젝트에선 여러 앱이 있을 것이다. 여러 앱이 있을 때 URL 이름들을 구분하기 위해 namespacing을 한다.
+* `app_name`을 추가하여 해당 app의 namespace를 설정한다.
+```python
+# polls/urls.py
+rom django.urls import path
+
+from . import views
+
+app_name = 'polls'
+urlpatterns = [
+    path('', views.index, name='index'),
+    path('<int:question_id>/', views.detail, name='detail'),
+    path('<int:question_id>/results/', views.results, name='results'),
+    path('<int:question_id>/vote/', views.vote, name='vote'),
+]
+```
+* 이를 template에서도 바꿔야 한다.
+* Before
+```html
+<li><a href="{% url 'detail' question.id %}">{{ question.question_text }}</a></li>
+```
+* After
+```html
+<li><a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a></li>
+```
 ## Part 4
 
 ## Part 5
